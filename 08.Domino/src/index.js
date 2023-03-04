@@ -1,5 +1,6 @@
-import * as THREE from "../libs/three.module.js";
-import { OrbitControls } from "../libs/jsm/OrbitControls.js";
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import ammo from "./ammo.wasm.js";
 
 class Graphics {
   constructor() {
@@ -22,7 +23,6 @@ class Graphics {
     this._setupCamera();
     this._setupLight();
     this._setupAmmo();
-    // this._setupModel();
     this._setupControls();
     this._setupShot();
 
@@ -60,24 +60,29 @@ class Graphics {
   }
 
   _setupAmmo() {
-    Ammo().then(() => {
-      const overlappingPairCache = new Ammo.btDbvtBroadphase();
-      const collisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
-      const dispatcher = new Ammo.btCollisionDispatcher(collisionConfiguration);
-      const solver = new Ammo.btSequentialImpulseConstraintSolver();
+    ammo
+      .bind(window)()
+      .then((Ammo) => {
+        const overlappingPairCache = new Ammo.btDbvtBroadphase();
+        const collisionConfiguration =
+          new Ammo.btDefaultCollisionConfiguration();
+        const dispatcher = new Ammo.btCollisionDispatcher(
+          collisionConfiguration
+        );
+        const solver = new Ammo.btSequentialImpulseConstraintSolver();
 
-      const physicsWorld = new Ammo.btDiscreteDynamicsWorld(
-        dispatcher,
-        overlappingPairCache,
-        solver,
-        collisionConfiguration
-      );
-      physicsWorld.setGravity(new Ammo.btVector3(0, -9.807, 0));
+        const physicsWorld = new Ammo.btDiscreteDynamicsWorld(
+          dispatcher,
+          overlappingPairCache,
+          solver,
+          collisionConfiguration
+        );
+        physicsWorld.setGravity(new Ammo.btVector3(0, -9.807, 0));
 
-      this._physicsWorld = physicsWorld;
+        this._physicsWorld = physicsWorld;
 
-      this._setupModel();
-    });
+        this._setupModel();
+      });
   }
 
   _setupModel() {
@@ -95,6 +100,7 @@ class Graphics {
       if (!e.ctrlKey) {
         return;
       }
+
       const width = this._divContainer.clientWidth;
       const height = this._divContainer.clientHeight;
       const pt = {

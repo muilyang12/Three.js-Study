@@ -1,0 +1,22 @@
+const path = require("path");
+
+module.exports = {
+  entry: "./src/index.js",
+  output: {
+    filename: "index.js",
+    path: path.resolve(__dirname, "dist"),
+  },
+  devServer: {
+    static: {
+      directory: path.join(__dirname, "src"),
+    },
+    compress: true,
+    port: 3333,
+  },
+  resolve: {
+    fallback: {
+      fs: false,
+      path: false,
+    },
+  },
+};
