@@ -2,6 +2,8 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import ammo from "./ammo.wasm.js";
 
+let Ammo;
+
 class Graphics {
   constructor() {
     const divContainer = document.querySelector("#Webgl-container");
@@ -62,7 +64,8 @@ class Graphics {
   _setupAmmo() {
     ammo
       .bind(window)()
-      .then((Ammo) => {
+      .then((res) => {
+        Ammo = res;
         const overlappingPairCache = new Ammo.btDbvtBroadphase();
         const collisionConfiguration =
           new Ammo.btDefaultCollisionConfiguration();
