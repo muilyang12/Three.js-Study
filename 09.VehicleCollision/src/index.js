@@ -23,6 +23,10 @@ class Graphics {
     const scene = new THREE.Scene();
     this._scene = scene;
 
+    const axes = new THREE.AxesHelper(5);
+    axes.position.x += 20;
+    this._scene.add(axes);
+
     this._clock = new THREE.Clock();
 
     this._setupCamera();
@@ -41,7 +45,7 @@ class Graphics {
     const width = this._divContainer.clientWidth;
     const height = this._divContainer.clientHeight;
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 100);
-    camera.position.set(0, 20, 20);
+    camera.position.set(0, 20, -20);
     this._camera = camera;
   }
 
@@ -50,7 +54,7 @@ class Graphics {
     this._scene.add(ambientLight);
 
     const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
-    dirLight.position.set(-10, 15, 10);
+    dirLight.position.set(-10, 15, -10);
     this._scene.add(dirLight);
 
     dirLight.castShadow = true;
@@ -69,6 +73,7 @@ class Graphics {
       .bind(window)()
       .then((res) => {
         Ammo = res;
+
         const overlappingPairCache = new Ammo.btDbvtBroadphase();
         const collisionConfiguration =
           new Ammo.btDefaultCollisionConfiguration();
@@ -183,7 +188,7 @@ class Graphics {
           new THREE.Vector3(
             i - boxSize * Math.floor(numBoxes / 2),
             j + this.tableThickness / 2,
-            -5
+            5
           ),
           zeroQuaternion,
           boxSize,
@@ -261,7 +266,7 @@ class Graphics {
     const chassisPosition = new THREE.Vector3(
       0,
       this.tableThickness / 2 + chassisHeight / 2,
-      5
+      -5
     );
     const chassisQuaternion = new THREE.Quaternion(0, 0, 0, 1);
 
@@ -427,7 +432,7 @@ class Graphics {
     const wheelMaterial = new THREE.MeshPhongMaterial({ color: 0xff0000 });
     const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
 
-    wheel.rotateZ(Math.PI / 2);
+    wheelGeometry.rotateZ(Math.PI / 2);
 
     this._scene.add(wheel);
 
