@@ -245,6 +245,12 @@ class Graphics {
   }
 
   _createVehicle() {
+    const rigidBody = this._createChassis();
+    this._createVehiclePhysics(rigidBody);
+    this._createWheels();
+  }
+
+  _createChassis() {
     const mass = 1;
     const friction = 1;
 
@@ -312,13 +318,149 @@ class Graphics {
       aShape,
       localInertia
     );
-    const body = new Ammo.btRigidBody(rbInfo);
-    body.setFriction(friction);
-    this._physicsWorld.addRigidBody(body);
+    const rigidBody = new Ammo.btRigidBody(rbInfo);
+    rigidBody.setFriction(friction);
+    this._physicsWorld.addRigidBody(rigidBody);
 
-    chassis.physicsBody = body;
+    chassis.physicsBody = rigidBody;
 
     this._vehicle = chassis;
+
+    return rigidBody;
+  }
+
+  _createVehiclePhysics(rigidBody) {
+    var vehicleTuning = new Ammo.btVehicleTuning();
+    var vehicleRaycaster = new Ammo.btDefaultVehicleRaycaster(
+      this._physicsWorld
+    );
+
+    var vehicle = new Ammo.btRaycastVehicle(
+      vehicleTuning,
+      rigidBody,
+      vehicleRaycaster
+    );
+    vehicle.setCoordinateSystem(0, 1, 2);
+
+    this._physicsWorld.addAction(vehicle);
+
+    this._vehicleTuning = vehicleTuning;
+    this._vehicle = vehicle;
+  }
+
+  _createWheels() {
+    const FRONT_LEFT = 0;
+    const FRONT_RIGHT = 1;
+    const BACK_LEFT = 2;
+    const BACK_RIGHT = 3;
+
+    const wheelHalfTrack = 1;
+    const axisHeight = 0.3;
+    const frontAxisPosition = 1.25;
+    const backAxisPosition = -1.25;
+
+    const wheelRadius = 0.35;
+    const wheelWidth = 0.2;
+
+    const wheelMeshes = [];
+
+    this._createWheel(
+      true,
+      new Ammo.btVector3(wheelHalfTrack, axisHeight, frontAxisPosition),
+      wheelRadius,
+      wheelWidth,
+      wheelMeshes,
+      FRONT_LEFT
+    );
+    this._createWheel(
+      true,
+      new Ammo.btVector3(-wheelHalfTrack, axisHeight, frontAxisPosition),
+      wheelRadius,
+      wheelWidth,
+      wheelMeshes,
+      FRONT_RIGHT
+    );
+    this._createWheel(
+      false,
+      new Ammo.btVector3(-wheelHalfTrack, axisHeight, backAxisPosition),
+      wheelRadius,
+      wheelWidth,
+      wheelMeshes,
+      BACK_LEFT
+    );
+    this._createWheel(
+      false,
+      new Ammo.btVector3(wheelHalfTrack, axisHeight, backAxisPosition),
+      wheelRadius,
+      wheelWidth,
+      wheelMeshes,
+      BACK_RIGHT
+    );
+
+    for (let i = 0; i < 4; i++) {
+      this._vehicle.updateWheelTransform(i, true);
+
+      const wheelTransform = this._vehicle.getWheelTransformWS(i);
+      const p = wheelTransform.getOrigin();
+      const q = wheelTransform.getRotation();
+
+      wheelMeshes[i].position.set(p.x(), p.y(), p.z());
+      wheelMeshes[i].quaternion.set(q.x(), q.y(), q.z(), q.w());
+    }
+  }
+
+  _createWheel(
+    isFront,
+    wheelPosition,
+    wheelRadius,
+    wheelWidth,
+    wheelMeshes,
+    index
+  ) {
+    const wheelGeometry = new THREE.CylinderGeometry(
+      wheelRadius,
+      wheelRadius,
+      wheelWidth,
+      24,
+      1
+    );
+    const wheelMaterial = new THREE.MeshPhongMaterial({ color: 0xff0000 });
+    const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+
+    wheel.rotateZ(Math.PI / 2);
+
+    this._scene.add(wheel);
+
+    wheelMeshes[index] = wheel;
+
+    // ==================================================
+    // ==================================================
+
+    const wheelDirection = new Ammo.btVector3(0, -1, 0);
+    const wheelAxle = new Ammo.btVector3(-1, 0, 0);
+
+    const suspensionRestLength = 0.6;
+    const suspensionStiffness = 20.0;
+    const suspensionDamping = 2.3;
+    const suspensionCompression = 4.4;
+    const friction = 1000;
+    const rollInfluence = 0.2;
+
+    const wheelInfo = this._vehicle.addWheel(
+      wheelPosition,
+      wheelDirection,
+      wheelAxle,
+      suspensionRestLength,
+      wheelRadius,
+      this._vehicleTuning,
+      isFront
+    );
+
+    wheelInfo.set_m_suspensionStiffness(suspensionStiffness);
+    wheelInfo.set_m_wheelsDampingRelaxation(suspensionDamping);
+    wheelInfo.set_m_wheelsDampingCompression(suspensionCompression);
+    wheelInfo.set_m_frictionSlip(friction);
+    wheelInfo.set_m_rollInfluence(rollInfluence);
   }
 
   update(time) {
