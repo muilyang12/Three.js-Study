@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import ammo from "./ammo.wasm.js";
-import { keysActions } from "./keyActions.js";
+import { keysActions, wheelNums } from "./constant.js";
 
 let Ammo;
 
@@ -107,7 +107,7 @@ class Graphics {
   }
 
   _setupVehicleControl() {
-    const actions = {};
+    this._actions = {};
 
     window.addEventListener("keydown", (e) => {
       if (keysActions[e.code]) {
@@ -116,7 +116,7 @@ class Graphics {
 
         console.log(keysActions[e.code]);
 
-        actions[keysActions[e.code]] = true;
+        this._actions[keysActions[e.code]] = true;
       }
     });
 
@@ -125,7 +125,7 @@ class Graphics {
         e.preventDefault();
         e.stopPropagation();
 
-        actions[keysActions[e.code]] = false;
+        this._actions[keysActions[e.code]] = false;
       }
     });
   }
@@ -354,11 +354,6 @@ class Graphics {
   }
 
   _createWheels() {
-    const FRONT_LEFT = 0;
-    const FRONT_RIGHT = 1;
-    const BACK_LEFT = 2;
-    const BACK_RIGHT = 3;
-
     const wheelHalfTrack = 1;
     const axisHeight = 0.3;
     const frontAxisPosition = 1.25;
@@ -367,39 +362,39 @@ class Graphics {
     const wheelRadius = 0.35;
     const wheelWidth = 0.2;
 
-    const wheelMeshes = [];
+    this._wheelMeshes = [];
 
     this._createWheel(
       true,
       new Ammo.btVector3(wheelHalfTrack, axisHeight, frontAxisPosition),
       wheelRadius,
       wheelWidth,
-      wheelMeshes,
-      FRONT_LEFT
+      this._wheelMeshes,
+      wheelNums.FRONT_LEFT
     );
     this._createWheel(
       true,
       new Ammo.btVector3(-wheelHalfTrack, axisHeight, frontAxisPosition),
       wheelRadius,
       wheelWidth,
-      wheelMeshes,
-      FRONT_RIGHT
+      this._wheelMeshes,
+      wheelNums.FRONT_RIGHT
     );
     this._createWheel(
       false,
       new Ammo.btVector3(-wheelHalfTrack, axisHeight, backAxisPosition),
       wheelRadius,
       wheelWidth,
-      wheelMeshes,
-      BACK_LEFT
+      this._wheelMeshes,
+      wheelNums.BACK_LEFT
     );
     this._createWheel(
       false,
       new Ammo.btVector3(wheelHalfTrack, axisHeight, backAxisPosition),
       wheelRadius,
       wheelWidth,
-      wheelMeshes,
-      BACK_RIGHT
+      this._wheelMeshes,
+      wheelNums.BACK_RIGHT
     );
 
     for (let i = 0; i < 4; i++) {
@@ -409,8 +404,8 @@ class Graphics {
       const p = wheelTransform.getOrigin();
       const q = wheelTransform.getRotation();
 
-      wheelMeshes[i].position.set(p.x(), p.y(), p.z());
-      wheelMeshes[i].quaternion.set(q.x(), q.y(), q.z(), q.w());
+      this._wheelMeshes[i].position.set(p.x(), p.y(), p.z());
+      this._wheelMeshes[i].quaternion.set(q.x(), q.y(), q.z(), q.w());
     }
   }
 
