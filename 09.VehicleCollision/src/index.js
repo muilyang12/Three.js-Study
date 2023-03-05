@@ -256,7 +256,7 @@ class Graphics {
   }
 
   _createChassis() {
-    const mass = 1;
+    const mass = 10;
     const friction = 1;
 
     const chassisWidth = 1.8;
@@ -329,18 +329,16 @@ class Graphics {
 
     chassis.physicsBody = rigidBody;
 
-    this._vehicle = chassis;
-
     return rigidBody;
   }
 
   _createVehiclePhysics(rigidBody) {
-    var vehicleTuning = new Ammo.btVehicleTuning();
-    var vehicleRaycaster = new Ammo.btDefaultVehicleRaycaster(
+    const vehicleTuning = new Ammo.btVehicleTuning();
+    const vehicleRaycaster = new Ammo.btDefaultVehicleRaycaster(
       this._physicsWorld
     );
 
-    var vehicle = new Ammo.btRaycastVehicle(
+    const vehicle = new Ammo.btRaycastVehicle(
       vehicleTuning,
       rigidBody,
       vehicleRaycaster
@@ -499,6 +497,86 @@ class Graphics {
         objTHREE.position.set(pos.x(), pos.y(), pos.z());
         objTHREE.quaternion.set(quat.x(), quat.y(), quat.z(), quat.w());
       });
+
+      this._updateVehicle();
+    }
+  }
+
+  _updateVehicle() {
+    if (this._vehicle) {
+      const steeringIncrement = 0.15;
+      const steeringClamp = 0.5; // A phenomenon where the steering wheel becomes unstable or difficult to turn during operation.
+      const maxBreakingForce = 12;
+      const maxEngineForce = 25;
+
+      let breakingForce = 0;
+      let engineForce = 0;
+      let vehicleSteering = 0;
+
+      let speed = this._vehicle.getCurrentSpeedKmHour();
+
+      if (this._actions.acceleration) {
+        if (speed < -1) breakingForce = maxBreakingForce;
+        else engineForce = maxEngineForce;
+      }
+      if (this._actions.braking) {
+        if (speed > 1) breakingForce = maxBreakingForce;
+        else engineForce = -maxEngineForce / 2;
+      }
+      if (this._actions.left) {
+        if (vehicleSteering < steeringClamp) {
+          vehicleSteering += steeringIncrement;
+        }
+      } else {
+        if (this._actions.right) {
+          if (vehicleSteering > -steeringClamp) {
+            vehicleSteering -= steeringIncrement;
+          }
+        } else {
+          if (vehicleSteering < -steeringIncrement) {
+            vehicleSteering += steeringIncrement;
+          } else {
+            if (vehicleSteering > steeringIncrement) {
+              vehicleSteering -= steeringIncrement;
+            } else {
+              vehicleSteering = 0;
+            }
+          }
+        }
+      }
+
+      this._vehicle.applyEngineForce(engineForce, wheelNums.FRONT_LEFT);
+      this._vehicle.applyEngineForce(engineForce, wheelNums.FRONT_RIGHT);
+      this._vehicle.applyEngineForce(engineForce, wheelNums.BACK_LEFT);
+      this._vehicle.applyEngineForce(engineForce, wheelNums.BACK_RIGHT);
+
+      this._vehicle.setBrake(breakingForce / 2, wheelNums.FRONT_LEFT);
+      this._vehicle.setBrake(breakingForce / 2, wheelNums.FRONT_RIGHT);
+      this._vehicle.setBrake(breakingForce / 2, wheelNums.BACK_LEFT);
+      this._vehicle.setBrake(breakingForce / 2, wheelNums.BACK_RIGHT);
+
+      this._vehicle.setSteeringValue(vehicleSteering, wheelNums.FRONT_LEFT);
+      this._vehicle.setSteeringValue(vehicleSteering, wheelNums.FRONT_RIGHT);
+
+      const numWheels = this._vehicle.getNumWheels();
+      for (let i = 0; i < numWheels; i++) {
+        this._vehicle.updateWheelTransform(i, true);
+        const wheelTransform = this._vehicle.getWheelTransformWS(i);
+        const wheelOrigin = wheelTransform.getOrigin();
+        const wheelRotation = wheelTransform.getRotation();
+
+        this._wheelMeshes[i].position.set(
+          wheelOrigin.x(),
+          wheelOrigin.y(),
+          wheelOrigin.z()
+        );
+        this._wheelMeshes[i].quaternion.set(
+          wheelRotation.x(),
+          wheelRotation.y(),
+          wheelRotation.z(),
+          wheelRotation.w()
+        );
+      }
     }
   }
 
