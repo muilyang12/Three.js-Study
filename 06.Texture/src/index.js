@@ -1,13 +1,5 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import MapImage from "./assets/textures/Glass_Window_002_basecolor.jpg";
-import MapAOImage from "./assets/textures/Glass_Window_002_ambientOcclusion.jpg";
-import MapHeighImage from "./assets/textures/Glass_Window_002_height.png";
-import MapNormalImage from "./assets/textures/Glass_Window_002_normal.jpg";
-import MapRoughnessImage from "./assets/textures/Glass_Window_002_roughness.jpg";
-import MapMetalicImage from "./assets/textures/Glass_Window_002_metallic.jpg";
-import MapAlphaImage from "./assets/textures/Glass_Window_002_opacity.jpg";
-import MapLightImage from "./assets/textures/Glass_Window_002_light.jpg";
 
 class Graphics {
   constructor() {
@@ -68,14 +60,30 @@ class Graphics {
   _setupModel() {
     const textureLoader = new THREE.TextureLoader();
 
-    const map = textureLoader.load(MapImage);
-    const mapAO = textureLoader.load(MapAOImage);
-    const mapHeight = textureLoader.load(MapHeighImage);
-    const mapNormal = textureLoader.load(MapNormalImage);
-    const mapRoughness = textureLoader.load(MapRoughnessImage);
-    const mapMetalic = textureLoader.load(MapMetalicImage);
-    const mapAlpha = textureLoader.load(MapAlphaImage);
-    const mapLight = textureLoader.load(MapLightImage);
+    const map = textureLoader.load(
+      "./assets/textures/Glass_Window_002_basecolor.jpg"
+    );
+    const mapAO = textureLoader.load(
+      "./assets/textures/Glass_Window_002_ambientOcclusion.jpg"
+    );
+    const mapHeight = textureLoader.load(
+      "./assets/textures/Glass_Window_002_height.png"
+    );
+    const mapNormal = textureLoader.load(
+      "./assets/textures/Glass_Window_002_normal.jpg"
+    );
+    const mapRoughness = textureLoader.load(
+      "./assets/textures/Glass_Window_002_roughness.jpg"
+    );
+    const mapMetalic = textureLoader.load(
+      "./assets/textures/Glass_Window_002_metallic.jpg"
+    );
+    const mapAlpha = textureLoader.load(
+      "./assets/textures/Glass_Window_002_opacity.jpg"
+    );
+    const mapLight = textureLoader.load(
+      "./assets/textures/Glass_Window_002_light.jpg"
+    );
 
     const material = new THREE.MeshStandardMaterial({
       map: map,
