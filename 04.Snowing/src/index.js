@@ -1,4 +1,8 @@
 import * as THREE from "three";
+import Snowflake01 from "./assets/images/snowflake01.png";
+import Snowflake02 from "./assets/images/snowflake02.png";
+import Snowflake03 from "./assets/images/snowflake03.png";
+import Snowflake04 from "./assets/images/snowflake04.png";
 
 let scene = null;
 let camera = null;
@@ -21,10 +25,10 @@ const handleLoad = () => {
 
   const textureLoader = new THREE.TextureLoader();
   const textures = [];
-  textures.push(textureLoader.load("./assets/images/snowflake01.png"));
-  textures.push(textureLoader.load("./assets/images/snowflake02.png"));
-  textures.push(textureLoader.load("./assets/images/snowflake03.png"));
-  textures.push(textureLoader.load("./assets/images/snowflake04.png"));
+  textures.push(textureLoader.load(Snowflake01));
+  textures.push(textureLoader.load(Snowflake02));
+  textures.push(textureLoader.load(Snowflake03));
+  textures.push(textureLoader.load(Snowflake04));
 
   for (let i = 0; i < SNOWFLAKE_NUM; i++) {
     const geometry = new THREE.BufferGeometry();
