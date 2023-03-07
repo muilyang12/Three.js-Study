@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import ammo from "./ammo.wasm.js";
+import ammo from "./ammo.js";
 import { keysActions, wheelNums } from "./constant.js";
 
 let Ammo;

@@ -66,6 +66,7 @@ class Graphics {
       .bind(window)()
       .then((res) => {
         Ammo = res;
+
         const overlappingPairCache = new Ammo.btDbvtBroadphase();
         const collisionConfiguration =
           new Ammo.btDefaultCollisionConfiguration();
