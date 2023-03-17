@@ -91,7 +91,54 @@ class Graphics {
     new GLTFLoader().load();
   }
 
-  _createStage() {}
+  _createStage() {
+    const models = this._models;
+
+    const mesh = models.getObjectByName("Stage");
+
+    const pos = { ...mesh.position };
+    const quat = { x: 0, y: 0, z: 0, w: 1 };
+
+    const mass = 0;
+    const friction = 0.5;
+    const rollingFriction = 0.1;
+    const restitution = 0.2;
+
+    mesh.position.set(pos.x, pos.y, pos.z);
+    this._scene.add(mesh);
+
+    // ==================================================
+    // ==================================================
+
+    const transform = new Ammo.btTransform();
+    transform.setIdentity();
+    transform.setOrigin(new Ammo.btVector3(pos.x, pos.y, pos.z));
+    transform.setRotation(
+      new Ammo.btQuaternion(quat.x, quat.y, quat.z, quat.w)
+    );
+    const motionState = new Ammo.btDefaultMotionState(transform);
+
+    // colShape: Collision Shape
+    const colShape = this._createAmmoShapeFromMesh(mesh);
+    // The margin of the collision shape, which is an additional space around the collision shape that is used to prevent two collision shapes from overlapping with each other.
+    colShape.setMargin(0.01);
+    const localInertia = new Ammo.btVector3(0, 0, 0);
+    colShape.calculateLocalInertia(mass, localInertia);
+
+    const rbInfo = new Ammo.btRigidBodyConstructionInfo(
+      mass,
+      motionState,
+      colShape,
+      localInertia
+    );
+    const body = new Ammo.btRigidBody(rbInfo);
+
+    body.setFriction(friction);
+    body.setRollingFriction(rollingFriction);
+    body.setRestitution(restitution);
+
+    this._physicsWorld.addRigidBody(body);
+  }
 
   _createPins() {}
 
