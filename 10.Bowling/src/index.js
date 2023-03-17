@@ -35,7 +35,7 @@ class Graphics {
         this._physicsWorld = physicsWorld;
 
         this._rigidBodies = [];
-        // The btTransform class in Ammo.js is used to represent the position and orientation of an object, as well as the relative position and orientation between objects in the physics engine.
+        // The btTransform class in Ammo.js is used to represent the position and orientation of an object in the physics engine.
         // this._tmpTrans = new Ammo.btTransform();
         // 이 부분이 왜 들어갔는지를 아직 이해하지 못했음. ㅠㅠ 좀 더 생각해봐야 할 듯.
 
@@ -110,12 +110,15 @@ class Graphics {
     // ==================================================
     // ==================================================
 
+    // The btTransform class in Ammo.js is used to represent the position and orientation of an object in the physics engine.
     const transform = new Ammo.btTransform();
+    // Both the position and rotation information of the transform object to 0.
     transform.setIdentity();
     transform.setOrigin(new Ammo.btVector3(pos.x, pos.y, pos.z));
     transform.setRotation(
       new Ammo.btQuaternion(quat.x, quat.y, quat.z, quat.w)
     );
+    // An interface for updating an object's position and orientation information and passing it to the rendering engine
     const motionState = new Ammo.btDefaultMotionState(transform);
 
     // colShape: Collision Shape
@@ -135,6 +138,7 @@ class Graphics {
 
     body.setFriction(friction);
     body.setRollingFriction(rollingFriction);
+    // Coefficient of restitution: The ratio of the final to initial relative speed between two objects after they collide
     body.setRestitution(restitution);
 
     this._physicsWorld.addRigidBody(body);
