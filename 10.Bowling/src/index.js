@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import ammo from "./ammo.js";
+import gsap from "gsap";
 
 let Ammo;
 
@@ -94,9 +95,9 @@ class Graphics {
   _createStage() {
     const models = this._models;
 
-    const mesh = models.getObjectByName("Stage");
+    const stageMesh = models.getObjectByName("Stage");
 
-    const pos = { ...mesh.position };
+    const pos = { ...stageMesh.position };
     const quat = { x: 0, y: 0, z: 0, w: 1 };
 
     const mass = 0;
@@ -104,8 +105,8 @@ class Graphics {
     const rollingFriction = 0.1;
     const restitution = 0.2;
 
-    mesh.position.set(pos.x, pos.y, pos.z);
-    this._scene.add(mesh);
+    stageMesh.position.set(pos.x, pos.y, pos.z);
+    this._scene.add(stageMesh);
 
     // ==================================================
     // ==================================================
@@ -122,7 +123,7 @@ class Graphics {
     const motionState = new Ammo.btDefaultMotionState(transform);
 
     // colShape: Collision Shape
-    const colShape = this._createAmmoShapeFromMesh(mesh);
+    const colShape = this._createAmmoShapeFromMesh(stageMesh);
     // The margin of the collision shape, which is an additional space around the collision shape that is used to prevent two collision shapes from overlapping with each other.
     colShape.setMargin(0.01);
     const localInertia = new Ammo.btVector3(0, 0, 0);
@@ -144,9 +145,86 @@ class Graphics {
     this._physicsWorld.addRigidBody(body);
   }
 
-  _createPins() {}
+  _createPins() {
+    const models = this._models;
 
-  _createDummyBall() {}
+    const pin = models.getObjectByName("Pin");
+
+    const quat = { x: 0, y: 0, z: 0, w: 1 };
+
+    const mass = 1;
+
+    const colShape = this._createAmmoShapeFromMesh(pin);
+    colShape.setMargin(0.01);
+    const localInertia = new Ammo.btVector3(0, 0, 0);
+    colShape.calculateLocalInertia(mass, localInertia);
+
+    for (let i = 0; i < 10; i++) {
+      const pinMesh = pin.clone();
+      const name = `Pin_Pos_${i + 1}`;
+      pinMesh.name = name;
+
+      const posObj = models.getObjectByName(name);
+      const pos = {
+        x: posObj.position.x,
+        y: posObj.position.y + 0.2,
+        z: posObj.position.z,
+      };
+      pinMesh.position.copy(pos);
+      this._scene.add(pinMesh);
+
+      const transform = new Ammo.btTransform();
+      transform.setIdentity();
+      transform.setOrigin(new Ammo.btVector3(pos.x, pos.y, pos.z));
+      transform.setRotation(
+        new Ammo.btQuaternion(quat.x, quat.y, quat.z, quat.w)
+      );
+      const motionState = new Ammo.btDefaultMotionState(transform);
+
+      const rbInfo = new Ammo.btRigidBodyConstructionInfo(
+        mass,
+        motionState,
+        colShape,
+        localInertia
+      );
+      const body = new Ammo.btRigidBody(rbInfo);
+
+      body.setFriction(0.4);
+      body.setRollingFriction(0.1);
+      body.setRestitution(1);
+
+      this._physicsWorld.addRigidBody(body);
+
+      pinMesh.userData.physicsBody = body;
+      this._rigidBodies.push(pinMesh);
+    }
+  }
+
+  _createDummyBall() {
+    const models = this._models;
+
+    const ballMesh = models.getObjectByName("Ball");
+
+    const pos = { x: 0, y: 0.2, z: -2.4 };
+    ballMesh.position.set(pos.x, pos.y, pos.z);
+
+    this._scene.add(ballMesh);
+
+    this._ball = ballMesh;
+
+    gsap.fromTo(
+      mesh.position,
+      { x: 0.6 },
+      {
+        x: -0.6,
+        duration: 1.5,
+        yoyo: true,
+        repeat: -1,
+        // The rate of change during the animation, giving it a specific feel.
+        ease: "power2.inOut",
+      }
+    );
+  }
 
   update() {
     const deltaTime = this._clock.getDelta();
