@@ -44,6 +44,11 @@ class Graphics {
         this._setupCamera();
         this._setupLight();
         // this._setupModel();
+
+        window.onresize = this.resize.bind(this);
+        this.resize();
+
+        requestAnimationFrame(this.render.bind(this));
       });
   }
 
@@ -234,14 +239,123 @@ class Graphics {
   _updatePhysics(deltaTime) {
     this._physicsWorld.stepSimulation(deltaTime, 10);
 
-    this._rigidBodies.forEach((body) => {});
+    let pos;
+    let qua;
+    this._rigidBodies.forEach((body) => {
+      const objThree = body;
+      const objAmmo = objThree.userData.physicsBody;
+
+      const motionState = objAmmo.getMotionState();
+      if (motionState) {
+        motionState.getWorldTransform(this._tmpTrans);
+        pos = this._tmpTrans.getOrigin();
+        qua = this._tmpTrans.getRotation();
+
+        objThree.position.set(pos.x(), pos.y(), pos.z());
+        objThree.quaternion.set(qua.x(), qua.y(), qua.z(), qua.w());
+      }
+    });
   }
+
+  _setupEvents() {
+    this._mouseY = 0;
+    this._prevMouseY = 0;
+
+    window.addEventListener("mousemove", (event) => {
+      this._prevMouseY = this._mouseY;
+      this._mouseY = event.clientY;
+    });
+
+    window.addEventListener("mouseup", () => {
+      const power = this._prevMouseY - this._mouseY;
+
+      if (power < 1) return;
+
+      const posNewBall = {
+        x: this._ball.position.x,
+        y: this._ball.position.y,
+        z: this._ball.position.z,
+      };
+      this._scene.remove(this._ball);
+      this._createBall(posNewBall, power);
+    });
+  }
+
+  _createBall(pos, power) {
+    const ballMesh = this._ball.clone();
+    ballMesh.position.set(pos.x, pos.y, pos.z);
+    this._scene.add(ballMesh);
+
+    // ==================================================
+    // ==================================================
+
+    const quat = { x: 0, y: 0, z: 0, w: 1 };
+    const mass = 3;
+
+    const transform = new Ammo.btTransform();
+    transform.setIdentity();
+    transform.setOrigin(new Ammo.btVector3(pos.x, pos.y, pos.z));
+    transform.setRotation(
+      new Ammo.btQuaternion(quat.x, quat.y, quat.z, quat.w)
+    );
+
+    const motionState = new Ammo.btDefaultMotionState(transform);
+
+    const colShape = this._createAmmoShapeFromMesh(ballMesh);
+    colShape.setMargin(0.01);
+    const localInertia = new Ammo.btVector3(0, 0, 0);
+    colShape.calculateLocalInertia(mass, localInertia);
+
+    const rbInfo = new Ammo.btRigidBodyConstructionInfo(
+      mass,
+      motionState,
+      colShape,
+      localInertia
+    );
+    const body = new Ammo.btRigidBody(rbInfo);
+
+    body.setFriction(0.5);
+    body.setRollingFriction(0.05);
+    body.setRestitution(0.9);
+
+    this._physicsWorld.addRigidBody(body);
+
+    ballMesh.userData.physicsBody = body;
+    this._rigidBodies.push(ballMesh);
+
+    // ==================================================
+    // ==================================================
+
+    const force = new Ammo.btVector3(0, 0, power * 3);
+    const targetPos = new Ammo.btVector3(0.2, 0.2, 0);
+    body.applyForce(force, targetPos);
+
+    gsap.to(this._camera.position, {
+      delay: 1.5,
+      duration: 3,
+      z: 1,
+      ease: "power2.out",
+      onComplete: () => this._showTryAgainButton(true),
+    });
+  }
+
+  _showTryAgainButton(isShown) {}
 
   render() {
     this._renderer.render(this._scene, this._camera);
     this.update();
 
     requestAnimationFrame(this.render.bind(this));
+  }
+
+  resize() {
+    const width = this._divContainer.clientWidth;
+    const height = this._divContainer.clientHeight;
+
+    this._camera.aspect = width / height;
+    this._camera.updateProjectionMatrix();
+
+    this._renderer.setSize(width, height);
   }
 }
 
