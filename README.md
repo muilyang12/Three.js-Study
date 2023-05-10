@@ -1,5 +1,9 @@
 # Three.js-Study
 
+## What I used
+
+ - Three.js, Ammo.js, Webpack, Webpack Server
+
 ## URI
 
 - [01.RotatingBoxBouncingSphere](https://muilyang12.github.io/Three.js-Study/01.RotatingBoxBouncingSphere/dist/)
